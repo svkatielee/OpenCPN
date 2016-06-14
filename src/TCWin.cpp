@@ -15,6 +15,7 @@ extern ColorScheme global_color_scheme;
 extern IDX_entry *gpIDX;
 extern int gpIDXn;
 extern TCMgr *ptcmgr;
+extern wxString g_locale;
 
 enum
 {
@@ -106,6 +107,13 @@ TCWin::TCWin( ChartCanvas *parent, int x, int y, void *pvIDX )
 
     int diff_mins = diff.GetMinutes();
 
+    //  Correct a bug in wx3.0.2
+    //  If the system TZ happens to be GMT, with DST active (e.g.summer in London),
+    //  then wxDateTime returns incorrect results for toGMT() method
+#if wxCHECK_VERSION(3, 0, 2)
+    if( diff_mins == 0 && this_now.IsDST() )
+        diff_mins +=60;
+#endif
     int station_offset = ptcmgr->GetStationTimeOffset( pIDX );
 
     m_corr_mins = station_offset - diff_mins;
@@ -175,13 +183,13 @@ TCWin::TCWin( ChartCanvas *parent, int x, int y, void *pvIDX )
     wxFont *dlg_font = FontMgr::Get().GetFont( _("Dialog") );
     int dlg_font_size = dlg_font->GetPointSize();
 
-    pSFont = wxTheFontList->FindOrCreateFont( dlg_font_size-2, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL,
+    pSFont = FontMgr::Get().FindOrCreateFont( dlg_font_size-2, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL,
                                                     wxFONTWEIGHT_NORMAL, FALSE, wxString( _T ( "Arial" ) ) );
-    pSMFont = wxTheFontList->FindOrCreateFont( dlg_font_size-1, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL,
+    pSMFont = FontMgr::Get().FindOrCreateFont( dlg_font_size-1, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL,
                                                        wxFONTWEIGHT_NORMAL, FALSE, wxString( _T ( "Arial" ) ) );
-    pMFont = wxTheFontList->FindOrCreateFont( dlg_font_size, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD,
+    pMFont = FontMgr::Get().FindOrCreateFont( dlg_font_size, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD,
                                                       FALSE, wxString( _T ( "Arial" ) ) );
-    pLFont = wxTheFontList->FindOrCreateFont( dlg_font_size+1, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD,
+    pLFont = FontMgr::Get().FindOrCreateFont( dlg_font_size+1, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD,
                                                       FALSE, wxString( _T ( "Arial" ) ) );
 
     pblack_1 = wxThePenList->FindOrCreatePen( GetGlobalColor( _T ( "UINFD" ) ), 1,
@@ -266,7 +274,7 @@ TCWin::~TCWin()
 void TCWin::RecalculateSize()
 {
     wxSize parent_size(2000,2000);
-    if(pParent)
+    if( pParent )
         parent_size = pParent->GetClientSize();
     
     if(m_created)
@@ -292,7 +300,8 @@ void TCWin::RecalculateSize()
     if( yc < 0 ) yc = 0;
     if( xc < 0 ) xc = 0;
     
-    pParent->ClientToScreen( &xc, &yc );
+    if( pParent )
+        pParent->ClientToScreen( &xc, &yc );
     m_position = wxPoint( xc, yc );
     
     if(m_created){
@@ -628,33 +637,44 @@ void TCWin::OnPaint( wxPaintEvent& event )
         int h = station_offset / 60;
         int m = station_offset - ( h * 60 );
         if( m_graphday.IsDST() ) h += 1;
-        m_stz.Printf( _T("Z %+03d:%02d"), h, m );
+        m_stz.Printf( _T("UTC %+03d:%02d"), h, m );
 
+         
+        
 //    Make the "nice" (for the US) station time-zone string, brutally by hand
-        wxString mtz;
-        switch( ptcmgr->GetStationTimeOffset( pIDX ) ) {
-        case -240:
-            mtz = _T( "AST" );
-            break;
-        case -300:
-            mtz = _T( "EST" );
-            break;
-        case -360:
-            mtz = _T( "CST" );
-            break;
-        }
+        double lat = ptcmgr->GetStationLat(pIDX);
+        
+        if( lat > 20.0 ){
+            wxString mtz;
+            switch( ptcmgr->GetStationTimeOffset( pIDX ) ) {
+            case -240:
+                mtz = _T( "AST" );
+                break;
+            case -300:
+                mtz = _T( "EST" );
+                break;
+            case -360:
+                mtz = _T( "CST" );
+                break;
+            }
 
-        if( mtz.Len() ) {
-            if( m_graphday.IsDST() ) mtz[1] = 'D';
+            if( mtz.Len() ) {
+                if( m_graphday.IsDST() ) mtz[1] = 'D';
 
-            m_stz = mtz;
+                m_stz = mtz;
+            }
         }
 
         dc.SetFont( *pSFont );
         dc.GetTextExtent( m_stz, &w, &h );
         dc.DrawText( m_stz, x / 2 - w / 2, y - 2 * m_button_height );
 
-        wxString sdate = m_graphday.Format( _T ( "%m/%d/%Y" ) );
+        wxString sdate;
+        if(g_locale == _T("en_US"))
+            sdate = m_graphday.Format( _T ( "%A %b %d, %Y" ) );
+        else
+            sdate =  m_graphday.Format( _T ( "%A %d %b %Y" ) );
+        
         dc.SetFont( *pMFont );
         dc.GetTextExtent( sdate, &w, &h );
         dc.DrawText( sdate, x / 2 - w / 2, y - 1.5 * m_button_height );

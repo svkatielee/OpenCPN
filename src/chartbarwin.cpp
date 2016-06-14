@@ -212,6 +212,7 @@ Piano::Piano()
     m_eventTimer.SetOwner( this, PIANO_EVENT_TIMER );
     
     m_tex = m_tex_piano_height = 0;
+    m_texh = 0;
 }
 
 Piano::~Piano()
@@ -723,15 +724,18 @@ void Piano::BuildGLTexture()
 
 void Piano::DrawGL(int off)
 {
+    int nKeys = m_key_array.GetCount();
+    if(!nKeys)
+        return;
+
 #ifdef ocpnUSE_GL
-    unsigned int w = cc1->GetClientSize().x, h = GetHeight(), endx = 0;
+    unsigned int w = cc1->GetClientSize().x, h = GetHeight();
+    unsigned int endx = 0;
  
     if(m_tex_piano_height != h)
         BuildGLTexture();
 
     int y1 = off, y2 = y1 + h;
-
-    int nKeys = m_key_array.GetCount();
 
     // we could cache the coordinates and recompute only when the piano hash changes,
     // but the performance is already fast enough at this point
@@ -1085,8 +1089,8 @@ bool Piano::MouseEvent( wxMouseEvent& event )
             if( -1 != sel_index ){
                 m_click_sel_index = sel_index;
                 m_click_sel_dbindex = sel_dbindex;
+                m_action = DEFERRED_KEY_CLICK_UP;
                 if(!m_eventTimer.IsRunning()){
-                    m_action = DEFERRED_KEY_CLICK_UP;
                     m_eventTimer.Start(10, wxTIMER_ONE_SHOT);
                 }
             }

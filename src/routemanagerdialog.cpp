@@ -142,7 +142,7 @@ extern bool             g_bresponsive;
 // sort callback. Sort by route name.
 int sort_route_name_dir;
 #if wxCHECK_VERSION(2, 9, 0)
-int wxCALLBACK SortRoutesOnName(long item1, long item2, wxIntPtr list)
+int wxCALLBACK SortRoutesOnName(wxIntPtr item1, wxIntPtr item2, wxIntPtr list)
 #else
 int wxCALLBACK SortRoutesOnName(long item1, long item2, long list)
 #endif
@@ -171,7 +171,7 @@ int wxCALLBACK SortRoutesOnName(long item1, long item2, long list)
 // sort callback. Sort by route Destination.
 int sort_route_to_dir;
 #if wxCHECK_VERSION(2, 9, 0)
-int wxCALLBACK SortRoutesOnTo(long item1, long item2, wxIntPtr list)
+int wxCALLBACK SortRoutesOnTo(wxIntPtr item1, wxIntPtr item2, wxIntPtr list)
 #else
 int wxCALLBACK SortRoutesOnTo(long item1, long item2, long list)
 #endif
@@ -199,7 +199,7 @@ int wxCALLBACK SortRoutesOnTo(long item1, long item2, long list)
 // sort callback. Sort by track name.
 int sort_track_name_dir;
 #if wxCHECK_VERSION(2, 9, 0)
-int wxCALLBACK SortTracksOnName(long item1, long item2, wxIntPtr list)
+int wxCALLBACK SortTracksOnName(wxIntPtr item1, wxIntPtr item2, wxIntPtr list)
 #else
 int wxCALLBACK SortTracksOnName(long item1, long item2, long list)
 #endif
@@ -228,7 +228,7 @@ int wxCALLBACK SortTracksOnName(long item1, long item2, long list)
 // sort callback. Sort by track length.
 int sort_track_len_dir;
 #if wxCHECK_VERSION(2, 9, 0)
-int wxCALLBACK SortTracksOnDistance(long item1, long item2, wxIntPtr list)
+int wxCALLBACK SortTracksOnDistance(wxIntPtr item1, wxIntPtr item2, wxIntPtr list)
 #else
 int wxCALLBACK SortTracksOnDistance(long item1, long item2, long list)
 #endif
@@ -267,7 +267,7 @@ int sort_wp_key;
 // sort callback. Sort by wpt name.
 int sort_wp_name_dir;
 #if wxCHECK_VERSION(2, 9, 0)
-int wxCALLBACK SortWaypointsOnName(long item1, long item2, wxIntPtr list)
+int wxCALLBACK SortWaypointsOnName(wxIntPtr item1, wxIntPtr item2, wxIntPtr list)
 #else
 int wxCALLBACK SortWaypointsOnName(long item1, long item2, long list)
 #endif
@@ -292,7 +292,7 @@ int wxCALLBACK SortWaypointsOnName(long item1, long item2, long list)
 // sort callback. Sort by wpt distance.
 int sort_wp_len_dir;
 #if wxCHECK_VERSION(2, 9, 0)
-int wxCALLBACK SortWaypointsOnDistance(long item1, long item2, wxIntPtr list)
+int wxCALLBACK SortWaypointsOnDistance(wxIntPtr item1, wxIntPtr item2, wxIntPtr list)
 #else
 int wxCALLBACK SortWaypointsOnDistance(long item1, long item2, long list)
 #endif
@@ -330,7 +330,7 @@ int wxCALLBACK SortWaypointsOnDistance(long item1, long item2, long list)
 // sort callback. Sort by layer name.
 int sort_layer_name_dir;
 #if wxCHECK_VERSION(2, 9, 0)
-int wxCALLBACK SortLayersOnName(long item1, long item2, wxIntPtr list)
+int wxCALLBACK SortLayersOnName(wxIntPtr item1, wxIntPtr item2, wxIntPtr list)
 #else
 int wxCALLBACK SortLayersOnName(long item1, long item2, long list)
 #endif
@@ -359,7 +359,7 @@ int wxCALLBACK SortLayersOnName(long item1, long item2, long list)
 // sort callback. Sort by layer size.
 int sort_layer_len_dir;
 #if wxCHECK_VERSION(2, 9, 0)
-int wxCALLBACK SortLayersOnSize(long item1, long item2, wxIntPtr list)
+int wxCALLBACK SortLayersOnSize(wxIntPtr item1, wxIntPtr item2, wxIntPtr list)
 #else
 int wxCALLBACK SortLayersOnSize(long item1, long item2, long list)
 #endif
@@ -939,12 +939,18 @@ void RouteManagerDialog::RecalculateSize()
 
 void RouteManagerDialog::OnClose(wxCloseEvent& event)
 {
+    #ifdef __WXGTK__ 
+    gFrame->Raise();
+    #endif
     Hide();
     //    pRouteManagerDialog = NULL;
 }
 
 void RouteManagerDialog::OnOK(wxCommandEvent& event)
 {
+    #ifdef __WXGTK__ 
+    gFrame->Raise();
+    #endif
     Hide();
     
     if(g_bresponsive)
@@ -1014,7 +1020,7 @@ void RouteManagerDialog::UpdateRouteListCtrl()
         list_index++;
     }
 
-    m_pRouteListCtrl->SortItems( SortRoutesOnName, (long) m_pRouteListCtrl );
+    m_pRouteListCtrl->SortItems( SortRoutesOnName, (wxIntPtr) m_pRouteListCtrl );
 
     m_pRouteListCtrl->SetColumnWidth(0, 4 * m_charWidth);
     
@@ -1441,11 +1447,11 @@ void RouteManagerDialog::OnRteColumnClicked( wxListEvent &event )
 {
     if( event.m_col == 1 ) {
         sort_route_name_dir++;
-        m_pRouteListCtrl->SortItems( SortRoutesOnName, (long) m_pRouteListCtrl );
+        m_pRouteListCtrl->SortItems( SortRoutesOnName, (wxIntPtr) m_pRouteListCtrl );
     } else
         if( event.m_col == 2 ) {
             sort_route_to_dir++;
-            m_pRouteListCtrl->SortItems( SortRoutesOnTo, (long) m_pRouteListCtrl );
+            m_pRouteListCtrl->SortItems( SortRoutesOnTo, (wxIntPtr) m_pRouteListCtrl );
         }
 }
 
@@ -1528,14 +1534,14 @@ void RouteManagerDialog::OnTrkMenuSelected( wxCommandEvent &event )
             }
 
             wxString choices[] = { _T("5.0"), _T("10.0"), _T("20.0"), _T("50.0"), _T("100.0") };
-            wxSingleChoiceDialog* precisionDlg = new wxSingleChoiceDialog( this,
+            wxSingleChoiceDialog precisionDlg ( this,
                     _("Select the maximum error allowed (in meters)\nafter data reduction:"),
                     _("Reduce Data Precision"), 5, choices );
 
-            int result = precisionDlg->ShowModal();
+            int result = precisionDlg.ShowModal();
             if( result == wxID_CANCEL ) break;
             double precision = 5.0;
-            switch( precisionDlg->GetSelection() ) {
+            switch( precisionDlg.GetSelection() ) {
                 case 0: precision = 5.0; break;
                 case 1: precision = 10.0; break;
                 case 2: precision = 20.0; break;
@@ -1730,7 +1736,9 @@ void RouteManagerDialog::UpdateTrkListCtrl()
         
     }
 
-    m_pTrkListCtrl->SortItems( SortRoutesOnName, (long) m_pTrkListCtrl );
+    m_pTrkListCtrl->SortItems( SortRoutesOnName, (wxIntPtr) m_pTrkListCtrl );
+
+    m_pTrkListCtrl->SortItems( SortRoutesOnName, (wxIntPtr) m_pTrkListCtrl );
     m_pTrkListCtrl->SetColumnWidth(0, 4 * m_charWidth);
     
     // restore selection if possible
@@ -1755,11 +1763,11 @@ void RouteManagerDialog::OnTrkColumnClicked( wxListEvent &event )
 {
     if( event.m_col == 1 ) {
         sort_track_name_dir++;
-        m_pTrkListCtrl->SortItems( SortTracksOnName, (long) m_pTrkListCtrl );
+        m_pTrkListCtrl->SortItems( SortTracksOnName, (wxIntPtr) m_pTrkListCtrl );
     } else
         if( event.m_col == 2 ) {
             sort_track_len_dir++;
-            m_pTrkListCtrl->SortItems( SortTracksOnDistance, (long) m_pTrkListCtrl );
+            m_pTrkListCtrl->SortItems( SortTracksOnDistance, (wxIntPtr) m_pTrkListCtrl );
         }
 }
 
@@ -1967,7 +1975,7 @@ void RouteManagerDialog::OnTrkDeleteAllClick( wxCommandEvent &event )
 
 void RouteManagerDialog::UpdateWptListCtrl( RoutePoint *rp_select, bool b_retain_sort )
 {
-    long selected_id = -1;
+    wxIntPtr selected_id = -1;
     long item = -1;
 
     if( NULL == rp_select ) {
@@ -2013,7 +2021,7 @@ void RouteManagerDialog::UpdateWptListCtrl( RoutePoint *rp_select, bool b_retain
             dist.Printf( _T("%5.2f ") + getUsrDistanceUnit(), toUsrDistance( dst ) );
             m_pWptListCtrl->SetItem( idx, colWPTDIST, dist );
 
-            if( rp == rp_select ) selected_id = (long) rp_select; //index; //m_pWptListCtrl->GetItemData(item);
+            if( rp == rp_select ) selected_id = (wxIntPtr) rp_select; //index; //m_pWptListCtrl->GetItemData(item);
 
             wxListItem lic;
             lic.SetId( index );
@@ -2032,15 +2040,15 @@ void RouteManagerDialog::UpdateWptListCtrl( RoutePoint *rp_select, bool b_retain
     }
 
     if( !b_retain_sort ) {
-        m_pWptListCtrl->SortItems( SortWaypointsOnName, (long) m_pWptListCtrl );
+        m_pWptListCtrl->SortItems( SortWaypointsOnName, (wxIntPtr) m_pWptListCtrl );
         sort_wp_key = SORT_ON_NAME;
     } else {
         switch( sort_wp_key ){
             case SORT_ON_NAME:
-                m_pWptListCtrl->SortItems( SortWaypointsOnName, (long) m_pWptListCtrl );
+                m_pWptListCtrl->SortItems( SortWaypointsOnName, (wxIntPtr) m_pWptListCtrl );
                 break;
             case SORT_ON_DISTANCE:
-                m_pWptListCtrl->SortItems( SortWaypointsOnDistance, (long) m_pWptListCtrl );
+                m_pWptListCtrl->SortItems( SortWaypointsOnDistance, (wxIntPtr) m_pWptListCtrl );
                 break;
         }
     }
@@ -2091,12 +2099,12 @@ void RouteManagerDialog::OnWptColumnClicked( wxListEvent &event )
 {
     if( event.m_col == 1 ) {
         sort_wp_name_dir++;
-        m_pWptListCtrl->SortItems( SortWaypointsOnName, (long) m_pWptListCtrl );
+        m_pWptListCtrl->SortItems( SortWaypointsOnName, (wxIntPtr) m_pWptListCtrl );
         sort_wp_key = SORT_ON_NAME;
     } else
         if( event.m_col == 2 ) {
             sort_wp_len_dir++;
-            m_pWptListCtrl->SortItems( SortWaypointsOnDistance, (long) m_pWptListCtrl );
+            m_pWptListCtrl->SortItems( SortWaypointsOnDistance, (wxIntPtr) m_pWptListCtrl );
             sort_wp_key = SORT_ON_DISTANCE;
         }
 }
@@ -2431,11 +2439,11 @@ void RouteManagerDialog::OnLayColumnClicked( wxListEvent &event )
 {
     if( event.m_col == 1 ) {
         sort_layer_name_dir++;
-        m_pLayListCtrl->SortItems( SortLayersOnName, (long) m_pLayListCtrl );
+        m_pLayListCtrl->SortItems( SortLayersOnName, (wxIntPtr) m_pLayListCtrl );
     } else
         if( event.m_col == 2 ) {
             sort_layer_len_dir++;
-            m_pLayListCtrl->SortItems( SortLayersOnSize, (long) m_pLayListCtrl );
+            m_pLayListCtrl->SortItems( SortLayersOnSize, (wxIntPtr) m_pLayListCtrl );
         }
 }
 
@@ -2499,16 +2507,7 @@ void RouteManagerDialog::OnLayNewClick( wxCommandEvent &event )
     bool show_flag = g_bShowLayers;
     g_bShowLayers = true;
     
-#ifdef __WXOSX__
-    HideWithEffect(wxSHOW_EFFECT_BLEND );
-#endif
-    
     pConfig->UI_ImportGPX( this, true, _T("") );
-    
-#ifdef __WXOSX__
-    ShowWithEffect(wxSHOW_EFFECT_BLEND );
-#endif
-    
     
     g_bShowLayers = show_flag;
 
@@ -2831,7 +2830,7 @@ void RouteManagerDialog::UpdateLayListCtrl()
         
     }
 
-    m_pLayListCtrl->SortItems( SortLayersOnName, (long) m_pLayListCtrl );
+    m_pLayListCtrl->SortItems( SortLayersOnName, (wxIntPtr) m_pLayListCtrl );
     m_pLayListCtrl->SetColumnWidth(0, 4 * m_charWidth);
     
     // restore selection if possible
@@ -2850,15 +2849,7 @@ void RouteManagerDialog::OnImportClick( wxCommandEvent &event )
     // FIXME there is no way to instruct this function about what to import.
     // Suggest to add that!
     
-#ifdef __WXOSX__
-    HideWithEffect(wxSHOW_EFFECT_BLEND );
-#endif
-    
     pConfig->UI_ImportGPX( this );
-
-#ifdef __WXOSX__
-    ShowWithEffect(wxSHOW_EFFECT_BLEND );
-#endif
     
     UpdateRouteListCtrl();
     UpdateTrkListCtrl();
